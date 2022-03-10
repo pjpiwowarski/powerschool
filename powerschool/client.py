@@ -202,15 +202,16 @@ class Schema:
             return [response.get("tables").get(self.name)]
         # query multiple records
         else:
-            count = self.count(**kwargs)
             data = []
+            count = None
 
-            if count > 0:
-                if page or page_size == 0:
-                    n_pages = 1
-                else:
-                    n_pages = math.ceil(count / page_size)
+            if page or page_size == 0:
+                n_pages = 1
+            else:
+                count = self.count(**kwargs)
+                n_pages = math.ceil(count / page_size)
 
+            if count is None or count > 0:
                 params = {
                     k: kwargs.get(k)
                     for k in [
@@ -236,7 +237,7 @@ class Schema:
                         data=body,
                     )
 
-                    for r in response.get("record"):
+                    for r in response.get("record", []):
                         if self.schema_type == "query":
                             data.append(r)
                         else:
